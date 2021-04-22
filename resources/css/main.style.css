@@ -215,6 +215,12 @@ html {
     overflow: auto;
 }
 
+.inline-elem {
+    display: block;
+    line-height: 2rem;
+    white-space: inherit;
+}
+
 .box__body:empty {
     display: none;
 }
