@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="./css/main.style.css">
+</head>
+
+<body>
+    <div class="root">
+        <div class="main">
+
+            <div class="services">
+                <div class="services__groups-cont">
+                    <div class="services__search-body">
+                        <input id="srv-search-input" class="services__search-input" type="text" value="...">
+                    </div>
+                    <div id="srv-but-list" class="services__buttons-list">
+
+                    </div>
+                </div>
+                <div id="srv-result-list" class="services__result-cont">
+                    <div id="pgn" class="pagination">
+
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+
+    <script src="./js/search.js"></script>
+
+    <script>
+        const maxElements = 100;
+
+        const groupsListArray = new Array();
+        const servicesListArray = new Array();
+
+        for (let i = 0; i < maxElements; i++) {
+            groupsListArray[i] = {
+                id: i,
+                value: uniqueId(getRandomInt(10, 50))
+            }
+            servicesListArray[i] = {
+                id: i,
+                group_id: getRandomInt(0, maxElements),
+                price: getRandomInt(100, 10000),
+                value: uniqueId(getRandomInt(10, 256))
+            }
+        }
+
+        let collapseEnabled = false;
+
+        function getItemsList(array, pageSize) {
+            const pageNum = Math.ceil(array.length / pageSize);
+            const listPageObjects = new Array();
+
+            let elemNum = 0,
+                elemPage = 0;
+
+            if (!Array.isArray(array)) array = Object.entries(array);
+            array.forEach(function(value, key) {
+                if (listPageObjects[elemPage] == undefined) listPageObjects[elemPage] = new Array();
+                listPageObjects[elemPage][elemNum] = value;
+
+                elemNum++;
+
+                if (elemNum >= pageSize) {
+                    elemNum = 0;
+                    elemPage++;
+                }
+            });
+
+            return listPageObjects;
+        }
+
+        function getButtonsList(array, curPage, maxItems = 4) {
+            let leftArray = new Array();
+            let rightArray = new Array();
+            for (let i = curPage - 1, it = 0; i >= 0 && it < maxItems; i--, it++) {
+                if (array[i]) {
+                    if (it == maxItems - 2) {
+                        leftArray.unshift('...');
+                    } else if (it == maxItems - 1 && i != 0) {
+                        leftArray.unshift({
+                            pageNumber: 0,
+                            itemsList: array[0]
+                        })
+                    } else {
+                        leftArray.unshift({
+                            pageNumber: i,
+                            itemsList: array[i]
+                        })
+                    }
+                }
+            }
+
+            for (let i = curPage + 1, it = 0; i < array.length && it < maxItems; i++, it++) {
+                if (array[i]) {
+                    if (it == maxItems - 2) {
+                        rightArray.push('...');
+                    } else if (it == maxItems - 1 && i != 0) {
+                        rightArray.push({
+                            pageNumber: array.length - 1,
+                            itemsList: array[array.length - 1]
+                        })
+                    } else {
+                        rightArray.push({
+                            pageNumber: i,
+                            itemsList: array[i]
+                        })
+                    }
+                }
+            }
+
+            const curItem = {
+                pageNumber: curPage,
+                itemsList: array[curPage],
+                active: true
+            }
+            let resultButtonsList = new Array();
+            resultButtonsList = resultButtonsList.concat(leftArray, curItem, rightArray);
+
+            if (curPage > 0) resultButtonsList.unshift('Prev');
+            if (curPage < array.length - 1) resultButtonsList.push('Next');
+
+            return resultButtonsList;
+        }
+
+        function createContent(itemsList, parent) {
+
+        }
+
+        function createGroupButtons(arrayButtons, arrayItems, parent, maxItems = 4) {
+            if (parent) parent.innerHTML = "";
+            else return;
+
+            function newPageValue(curPage, value, arrayItems) {
+                if (typeof value !== 'object') {
+                    if (value.toLowerCase() == "next" && curPage + 1 <= arrayItems.length - 1) {
+                        return curPage + 1;
+                    } else if (value.toLowerCase() == "prev" && curPage - 1 >= 0) {
+                        return curPage - 1;
+                    } else return false;
+                } else {
+                    return value.pageNumber != curPage ? value.pageNumber : false;
+                }
+            }
+
+            let curPage = null;
+            arrayButtons.forEach(function(value, key) {
+                let paginationItem;
+
+                if (value == "...") {
+                    paginationItem = document.createElement('div');
+                    paginationItem.classList.add('clear');
+                } else {
+                    paginationItem = document.createElement('a');
+                }
+
+                paginationItem.innerText = typeof value === 'object' ? value.pageNumber + 1 : value;
+                paginationItem.setAttribute('data-page', typeof value === 'object' ? value.pageNumber : value);
+
+                if (value.active && value.active == true) {
+                    paginationItem.classList.add('active')
+                    curPage = value;
+                }
+
+                paginationItem.classList.add('pagination__item');
+                parent.append(paginationItem);
+
+                if (value != "...") {
+                    paginationItem.addEventListener('click', () => {
+                        const newPage = newPageValue(curPage.pageNumber, value, arrayItems);
+                        if (newPage !== false) {
+                            const bList = getButtonsList(arrayItems, newPage, maxItems);
+                            createGroupButtons(bList, arrayItems, parent, maxItems);
+                        }
+                    })
+                }
+            });
+        }
+
+        const paginationCont = document.getElementById('pgn');
+        const curPage = 0;
+        const iList = getItemsList(servicesListArray, 7);
+        const bList = getButtonsList(iList, curPage, 17);
+
+        createGroupButtons(bList, iList, paginationCont, 17);
+    </script>
+</body>
+
+</html>
