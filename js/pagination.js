@@ -13,6 +13,7 @@ class Pagination {
     static _DefaultNextButtonClass = 'next';
     static _DefaultSearchButtonClass = 'search';
     static _DefaultOnlyNextPrevClass = 'pnmode';
+    static _DefaultItemsButtonClass = 'items';
 
     static getNodeElementById(node) {
         return typeof node == 'string' ? document.getElementById(node) : node;
@@ -135,8 +136,8 @@ class Pagination {
             }
         }
 
-        if (options.prevButton === true || options.prevButton === null) {
-            if ((options.curPage > 0 && originItemsList.length > 2) || options.prevButton) {
+        if (options.onlyNextPrevButtons || (options.prevButton === true || options.prevButton === null)) {
+            if (options.onlyNextPrevButtons || ((options.curPage > 0 && originItemsList.length > 2) || options.prevButton)) {
                 const prevButton = {
                     get pageNumber() {
                         if (options.curPage - 1 >= 0) return options.curPage - 1;
@@ -150,8 +151,8 @@ class Pagination {
             }
         }
 
-        if (options.nextButton == true || options.nextButton == null) {
-            if ((options.curPage < originItemsList.length - 1 && originItemsList.length > 2) || options.nextButton) {
+        if (options.onlyNextPrevButtons || (options.nextButton == true || options.nextButton == null)) {
+            if (options.onlyNextPrevButtons || ((options.curPage < originItemsList.length - 1 && originItemsList.length > 2) || options.nextButton)) {
                 const nextButton = {
                     get pageNumber() {
                         if (options.curPage + 1 <= originItemsList.length - 1) {
@@ -181,6 +182,18 @@ class Pagination {
             }
         }
 
+        if (options.itemsNumber == true && !options.onlyNextPrevButtons) {
+            const itemsNumber = {
+                type: 'items',
+                get text() {
+                    if (!options.itemsList[0] || !options.itemsList[options.curPage]) return '33333';
+                    return options.itemsList[0].length + '/' + options.itemsList[options.curPage].length;
+                },
+                itemList: false
+            }
+            bList.push(itemsNumber);
+        }
+
         resultButtonsList.buttonsList = bList;
 
         return resultButtonsList;
@@ -193,7 +206,7 @@ class Pagination {
         const maxItems = options.maxItems ? options.maxItems : 10;
         const searchButton = options.searchPage == true ? true : false;
         const originItemsList = options.itemsList ? options.itemsList : false;
-        const itemsNumber = options.itemsNumber ? options.itemsNumber : false;
+        const itemsNumber = options.itemsNumber == true ? true : false;
         const paginationContainer = options.paginationContainer ? Pagination.getNodeElementById(options.paginationContainer) : false;
         const contentFunction = options.contentFunction ? options.contentFunction : false;
 
@@ -248,7 +261,6 @@ class Pagination {
         if (options.contentFunction && options.itemsList[options.curPage]) {
             options.contentFunction(options.itemsList[options.curPage]);
         }
-
 
         if (bList.buttonsList.length <= 1) return false;
         bList.buttonsList.forEach(function(value, key) {
@@ -319,20 +331,24 @@ class Pagination {
             } else {
                 const pagElement = document.createElement('button');
                 pagElement.classList.add('pagination__item');
+                if (value.text) console.log(value.text);
                 pagElement.innerText = value.type === 'default' ? value.pageNumber + 1 : value.text;
                 pagElement.setAttribute('data-page', value.type == 'default' ? value.pageNumber : value.text);
 
                 if (value.type == 'prev') pagElement.classList.add(Pagination._DefaultPrevButtonClass);
                 if (value.type == 'next') pagElement.classList.add(Pagination._DefaultNextButtonClass);
+                if (value.type == 'items') pagElement.classList.add(Pagination._DefaultItemsButtonClass);
                 if (value.active) pagElement.classList.add(Pagination._DefaultActiveButtonClass)
 
                 options.paginationContainer.append(pagElement);
 
-                pagElement.addEventListener('click', () => {
-                    options.curPage = value.pageNumber;
-                    const bList = Pagination.getButtonsList(options);
-                    Pagination.createPageButtons(bList);
-                })
+                if (value.type != 'items') {
+                    pagElement.addEventListener('click', () => {
+                        options.curPage = value.pageNumber;
+                        const bList = Pagination.getButtonsList(options);
+                        Pagination.createPageButtons(bList);
+                    })
+                }
             }
 
         });

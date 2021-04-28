@@ -116,11 +116,12 @@ html {
     text-align: center;
 }
 
-.pagination__item:hover {
-    background-color: #dcdcdc;
+.pagination__item:not(.active, .items):hover {
+    background-color: #f3f3f3;
+    box-shadow: 0 3px 5px #0000001a;
 }
 
-.pagination__item:not(.active):active {
+.pagination__item:not(.active, .items, .search):active {
     transform: scale(0.95);
 }
 
@@ -134,34 +135,26 @@ html {
 
 .pagination__item.active {
     color: white;
-    background-color: #ffa816;
+    background-color: #f48024;
     cursor: not-allowed;
     pointer-events: none;
-    border-color: #ffa816;
+    border-color: #f48024;
 }
 
 .pagination__item.search {
-    max-width: 100px;
-    cursor: text;
-}
-
-.pagination__item.search {
+    max-width: fit-content;
     cursor: text;
     display: flex;
     padding: 0;
 }
 
-.pagination__item.search:active {
-    transform: none;
-}
-
 .pagination__item.search:hover {
     background-color: initial;
-    border-color: #ffa816;
+    border-color: #f48024;
 }
 
 .pagination__item.search:hover button {
-    border-color: #ffa816;
+    border-color: #f48024;
 }
 
 .pagination__item.search input {
@@ -184,9 +177,17 @@ html {
 }
 
 .pagination__item.search button:hover {
-    background-color: #ffa816;
-    border-color: #ffa816;
+    background-color: #f48024;
+    border-color: #f48024;
     color: white;
+}
+
+.pagination__item.items {
+    border: 0;
+    background: transparent;
+    cursor: initial;
+    font-style: italic;
+    color: darkgrey;
 }
 
 .pnmode .pagination__item.prev {

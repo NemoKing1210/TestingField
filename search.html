@@ -58,7 +58,7 @@
             itemsList: servicesListArray,
             maxButtons: 5,
             curPage: 'last',
-            maxItems: 5,
+            maxItems: 7,
             nextButton: null,
             prevButton: null,
             searchPage: true,
@@ -70,7 +70,7 @@
                 document.getElementById("contentContainer").innerHTML = "";
                 data.forEach(function(value, key, array) {
                     const contentElement = document.createElement('div');
-                    contentElement.innerHTML = `<b>id[${value.id}</b> = ${value.value}`;
+                    contentElement.innerHTML = `<b>${value.id}</b>`;
                     contentElement.classList.add('content-item');
                     document.getElementById("contentContainer").append(contentElement);
                 });
