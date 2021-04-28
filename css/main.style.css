@@ -101,19 +101,19 @@ html {
 }
 
 .pagination__item {
-    margin-left: 2px;
-    margin-right: 2px;
+    outline: 0;
+    margin: .1rem;
     padding: 0 8px;
     background-color: transparent;
-    border-radius: 3px;
+    border-radius: .25rem;
     border: 1px solid #cecece;
     font-size: 13px;
     line-height: 1.92307692;
     color: #313131;
     cursor: pointer;
-    transition: background-color .5s, transform .1s;
+    transition: background-color .5s, border-color .5s, transform .1s;
     user-select: none;
-    height: fit-content;
+    text-align: center;
 }
 
 .pagination__item:hover {
@@ -124,7 +124,7 @@ html {
     transform: scale(0.95);
 }
 
-.pagination__item.clear {
+.pagination__item.empty {
     color: inherit;
     border-color: transparent;
     background-color: transparent;
@@ -138,6 +138,72 @@ html {
     cursor: not-allowed;
     pointer-events: none;
     border-color: #ffa816;
+}
+
+.pagination__item.search {
+    max-width: 100px;
+    cursor: text;
+}
+
+.pagination__item.search {
+    cursor: text;
+    display: flex;
+    padding: 0;
+}
+
+.pagination__item.search:active {
+    transform: none;
+}
+
+.pagination__item.search:hover {
+    background-color: initial;
+    border-color: #ffa816;
+}
+
+.pagination__item.search:hover button {
+    border-color: #ffa816;
+}
+
+.pagination__item.search input {
+    background: transparent;
+    border: 0;
+    padding: 0 .25rem 0 .5rem;
+    outline: 0;
+}
+
+.pagination__item.search button {
+    padding: 0 .5rem;
+    margin: -1px;
+    background-color: #f1f1f1;
+    border: 1px solid #cecece;
+    border-radius: 0 .25rem .25rem 0;
+    font-weight: 700;
+    color: #7d7d7d;
+    transition: background-color .5s, border-color .5s;
+    outline: 0;
+}
+
+.pagination__item.search button:hover {
+    background-color: #ffa816;
+    border-color: #ffa816;
+    color: white;
+}
+
+.pnmode .pagination__item.prev {
+    margin-right: 0px;
+    border-right: 0px;
+    border-radius: .25rem 0 0 .25rem;
+}
+
+.pnmode .pagination__item.next {
+    margin-left: 0;
+    border-radius: 0 .25rem .25rem 0;
+}
+
+.content-item {
+    margin: .5rem;
+    padding: .5rem;
+    border: 1px solid #c1c1c1;
 }
 
 

@@ -24,7 +24,10 @@
                     </div>
                 </div>
                 <div id="srv-result-list" class="services__result-cont">
-                    <div id="pgn" class="pagination">
+                    <div id="contentContainer" class="">
+
+                    </div>
+                    <div id="paginationContainer" class="pagination">
 
                     </div>
                 </div>
@@ -36,18 +39,13 @@
     </div>
 
     <script src="./js/search.js"></script>
+    <script src="./js/pagination.js"></script>
 
     <script>
-        const maxElements = 100;
-
-        const groupsListArray = new Array();
+        const maxElements = 100000;
         const servicesListArray = new Array();
 
         for (let i = 0; i < maxElements; i++) {
-            groupsListArray[i] = {
-                id: i,
-                value: uniqueId(getRandomInt(10, 50))
-            }
             servicesListArray[i] = {
                 id: i,
                 group_id: getRandomInt(0, maxElements),
@@ -56,203 +54,28 @@
             }
         }
 
-        let collapseEnabled = false;
-
-        function getItemsList(array, pageSize) {
-            const pageNum = Math.ceil(array.length / pageSize);
-            const listPageObjects = new Array();
-
-            let elemNum = 0,
-                elemPage = 0;
-
-            if (!Array.isArray(array)) array = Object.entries(array);
-            array.forEach(function(value, key) {
-                if (listPageObjects[elemPage] == undefined) listPageObjects[elemPage] = new Array();
-                listPageObjects[elemPage][elemNum] = value;
-
-                elemNum++;
-
-                if (elemNum >= pageSize) {
-                    elemNum = 0;
-                    elemPage++;
-                }
-            });
-
-            return listPageObjects;
-        }
-
-        function getButtonsList(options = false) {
-            if (typeof options !== 'object' || options === false) return false;
-
-            const maxButtons = options.maxButtons ? options.maxButtons : 5;
-            const curPage = options.curPage ? options.curPage : 0;
-            const searchPage = options.searchPage ? options.searchPage : true;
-            const originItemsList = options.itemsList ? options.itemsList : false;
-
-            if (!originItemsList || !options) return false;
-
-            let leftArray = new Array();
-            let rightArray = new Array();
-            for (let i = curPage - 1, it = 0; i >= 0 && it < maxItems; i--, it++) {
-                if (originItemsList[i]) {
-                    if (it == maxItems - 2) {
-                        leftArray.unshift('...');
-                    } else if (it == maxItems - 1 && i != 0) {
-                        leftArray.unshift({
-                            pageNumber: 0,
-                            itemsList: originItemsList[0]
-                        })
-                    } else {
-                        leftArray.unshift({
-                            pageNumber: i,
-                            itemsList: originItemsList[i]
-                        })
-                    }
-                }
+        let page = Pagination.init({
+            itemsList: servicesListArray,
+            maxButtons: 5,
+            curPage: 'last',
+            maxItems: 5,
+            nextButton: null,
+            prevButton: null,
+            searchPage: true,
+            onlyNextPrevButtons: false,
+            searchPagePosition: 'right',
+            itemsNumber: true,
+            paginationContainer: "paginationContainer",
+            contentFunction: (data) => {
+                document.getElementById("contentContainer").innerHTML = "";
+                data.forEach(function(value, key, array) {
+                    const contentElement = document.createElement('div');
+                    contentElement.innerHTML = `<b>id[${value.id}</b> = ${value.value}`;
+                    contentElement.classList.add('content-item');
+                    document.getElementById("contentContainer").append(contentElement);
+                });
             }
-
-            for (let i = curPage + 1, it = 0; i < originItemsList.length && it < maxItems; i++, it++) {
-                if (originItemsList[i]) {
-                    if (it == maxItems - 2) {
-                        rightArray.push('...');
-                    } else if (it == maxItems - 1 && i != 0) {
-                        rightArray.push({
-                            pageNumber: originItemsList.length - 1,
-                            itemsList: originItemsList[array.length - 1]
-                        })
-                    } else {
-                        rightArray.push({
-                            pageNumber: i,
-                            itemsList: originItemsList[i]
-                        })
-                    }
-                }
-            }
-
-            const curItem = {
-                pageNumber: curPage,
-                itemsList: originItemsList[curPage],
-                active: true
-            }
-            let resultButtonsList = {
-                buttonsList: new Array(),
-                options: {
-                    maxItems: maxItems,
-                    curPage: curPage
-                }
-            }
-            resultButtonsList = resultButtonsList.concat(leftArray, curItem, rightArray);
-
-            if (curPage > 0) {
-                resultButtonsList.unshift({
-                    get pageNumber() {
-                        let curPage = curPage;
-                        if (curPage - 1 >= 0) return curPage - 1;
-                        else return curPage;
-                    },
-                    type: 'Prev',
-                    itemsList: false
-                })
-            }
-            if (curPage < array.length - 1) {
-                resultButtonsList.unshift({
-                    get pageNumber() {
-                        let curPage = curPage;
-                        if (curPage + 1 <= 10 - 1) {
-                            return curPage + 1;
-                        } else return false;
-                    },
-                    type: 'Next',
-                    itemsList: false
-                })
-            }
-
-            console.log(resultButtonsList);
-
-            return resultButtonsList;
-        }
-
-        function createPagination(options = false) {
-            if (typeof options !== 'object' || options === false) return false;
-
-            const maxButtons = options.maxButtons ? options.maxButtons : 5;
-            const maxItems = options.maxItems ? options.maxItems : 10;
-            const curPage = options.curPage ? options.curPage : 0;
-            const searchPage = options.searchPage ? options.searchPage : true;
-            const originItemsList = options.itemsList ? options.itemsList : false;
-
-            const iList = getItemsList(originItemsList, maxItems);
-            const bList = getButtonsList({
-                itemList: iList,
-                curPage: curPage,
-                maxButtons: maxButtons
-            });
-
-
-        }
-
-        function createPageButtons(itemsList, parent) {
-
-        }
-
-        function createPagination(arrayButtons, arrayItems, parent, maxItems = 4) {
-            if (parent) parent.innerHTML = "";
-            else return;
-
-            function newPageValue(curPage, value, arrayItems) {
-                if (typeof value !== 'object') {
-                    if (value.toLowerCase() == "next" && curPage + 1 <= arrayItems.length - 1) {
-                        return curPage + 1;
-                    } else if (value.toLowerCase() == "prev" && curPage - 1 >= 0) {
-                        return curPage - 1;
-                    } else return false;
-                } else {
-                    return value.pageNumber != curPage ? value.pageNumber : false;
-                }
-            }
-
-            let curPage = null;
-            arrayButtons.forEach(function(value, key) {
-                let paginationItem;
-
-                if (value == "...") {
-                    paginationItem = document.createElement('div');
-                    paginationItem.classList.add('clear');
-                } else {
-                    paginationItem = document.createElement('a');
-                }
-
-                paginationItem.innerText = typeof value === 'object' ? value.pageNumber + 1 : value;
-                paginationItem.setAttribute('data-page', typeof value === 'object' ? value.pageNumber : value);
-
-                if (value.active && value.active == true) {
-                    paginationItem.classList.add('active')
-                    curPage = value;
-                }
-
-                paginationItem.classList.add('pagination__item');
-                parent.append(paginationItem);
-
-                if (value != "...") {
-                    paginationItem.addEventListener('click', () => {
-                        const newPage = newPageValue(curPage.pageNumber, value, arrayItems);
-                        if (newPage !== false) {
-                            const bList = getButtonsList(arrayItems, newPage, maxItems);
-                            createPagination(bList, arrayItems, parent, maxItems);
-                        }
-                    })
-                }
-            });
-        }
-
-        const paginationCont = document.getElementById('pgn');
-        const curPage = 0;
-        const iList = getItemsList(servicesListArray, 7);
-        const bList = getButtonsList({
-            originItemsList: iList
-        });
-
-        createPagination(bList, iList, paginationCont, 4);
+        })
     </script>
 </body>
 
