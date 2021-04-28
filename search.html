@@ -81,40 +81,49 @@
             return listPageObjects;
         }
 
-        function getButtonsList(array, curPage, maxItems = 4) {
+        function getButtonsList(options = false) {
+            if (typeof options !== 'object' || options === false) return false;
+
+            const maxButtons = options.maxButtons ? options.maxButtons : 5;
+            const curPage = options.curPage ? options.curPage : 0;
+            const searchPage = options.searchPage ? options.searchPage : true;
+            const originItemsList = options.itemsList ? options.itemsList : false;
+
+            if (!originItemsList || !options) return false;
+
             let leftArray = new Array();
             let rightArray = new Array();
             for (let i = curPage - 1, it = 0; i >= 0 && it < maxItems; i--, it++) {
-                if (array[i]) {
+                if (originItemsList[i]) {
                     if (it == maxItems - 2) {
                         leftArray.unshift('...');
                     } else if (it == maxItems - 1 && i != 0) {
                         leftArray.unshift({
                             pageNumber: 0,
-                            itemsList: array[0]
+                            itemsList: originItemsList[0]
                         })
                     } else {
                         leftArray.unshift({
                             pageNumber: i,
-                            itemsList: array[i]
+                            itemsList: originItemsList[i]
                         })
                     }
                 }
             }
 
-            for (let i = curPage + 1, it = 0; i < array.length && it < maxItems; i++, it++) {
-                if (array[i]) {
+            for (let i = curPage + 1, it = 0; i < originItemsList.length && it < maxItems; i++, it++) {
+                if (originItemsList[i]) {
                     if (it == maxItems - 2) {
                         rightArray.push('...');
                     } else if (it == maxItems - 1 && i != 0) {
                         rightArray.push({
-                            pageNumber: array.length - 1,
-                            itemsList: array[array.length - 1]
+                            pageNumber: originItemsList.length - 1,
+                            itemsList: originItemsList[array.length - 1]
                         })
                     } else {
                         rightArray.push({
                             pageNumber: i,
-                            itemsList: array[i]
+                            itemsList: originItemsList[i]
                         })
                     }
                 }
@@ -122,23 +131,71 @@
 
             const curItem = {
                 pageNumber: curPage,
-                itemsList: array[curPage],
+                itemsList: originItemsList[curPage],
                 active: true
             }
-            let resultButtonsList = new Array();
+            let resultButtonsList = {
+                buttonsList: new Array(),
+                options: {
+                    maxItems: maxItems,
+                    curPage: curPage
+                }
+            }
             resultButtonsList = resultButtonsList.concat(leftArray, curItem, rightArray);
 
-            if (curPage > 0) resultButtonsList.unshift('Prev');
-            if (curPage < array.length - 1) resultButtonsList.push('Next');
+            if (curPage > 0) {
+                resultButtonsList.unshift({
+                    get pageNumber() {
+                        let curPage = curPage;
+                        if (curPage - 1 >= 0) return curPage - 1;
+                        else return curPage;
+                    },
+                    type: 'Prev',
+                    itemsList: false
+                })
+            }
+            if (curPage < array.length - 1) {
+                resultButtonsList.unshift({
+                    get pageNumber() {
+                        let curPage = curPage;
+                        if (curPage + 1 <= 10 - 1) {
+                            return curPage + 1;
+                        } else return false;
+                    },
+                    type: 'Next',
+                    itemsList: false
+                })
+            }
+
+            console.log(resultButtonsList);
 
             return resultButtonsList;
         }
 
-        function createContent(itemsList, parent) {
+        function createPagination(options = false) {
+            if (typeof options !== 'object' || options === false) return false;
+
+            const maxButtons = options.maxButtons ? options.maxButtons : 5;
+            const maxItems = options.maxItems ? options.maxItems : 10;
+            const curPage = options.curPage ? options.curPage : 0;
+            const searchPage = options.searchPage ? options.searchPage : true;
+            const originItemsList = options.itemsList ? options.itemsList : false;
+
+            const iList = getItemsList(originItemsList, maxItems);
+            const bList = getButtonsList({
+                itemList: iList,
+                curPage: curPage,
+                maxButtons: maxButtons
+            });
+
 
         }
 
-        function createGroupButtons(arrayButtons, arrayItems, parent, maxItems = 4) {
+        function createPageButtons(itemsList, parent) {
+
+        }
+
+        function createPagination(arrayButtons, arrayItems, parent, maxItems = 4) {
             if (parent) parent.innerHTML = "";
             else return;
 
@@ -181,7 +238,7 @@
                         const newPage = newPageValue(curPage.pageNumber, value, arrayItems);
                         if (newPage !== false) {
                             const bList = getButtonsList(arrayItems, newPage, maxItems);
-                            createGroupButtons(bList, arrayItems, parent, maxItems);
+                            createPagination(bList, arrayItems, parent, maxItems);
                         }
                     })
                 }
@@ -191,9 +248,11 @@
         const paginationCont = document.getElementById('pgn');
         const curPage = 0;
         const iList = getItemsList(servicesListArray, 7);
-        const bList = getButtonsList(iList, curPage, 17);
+        const bList = getButtonsList({
+            originItemsList: iList
+        });
 
-        createGroupButtons(bList, iList, paginationCont, 17);
+        createPagination(bList, iList, paginationCont, 4);
     </script>
 </body>
 
