@@ -15,21 +15,17 @@
         <div class="main">
 
             <div class="services">
-                <div class="services__groups-cont">
-                    <div class="services__search-body">
-                        <input id="srv-search-input" class="services__search-input" type="text" value="...">
-                    </div>
-                    <div id="srv-but-list" class="services__buttons-list">
-
-                    </div>
-                </div>
                 <div id="srv-result-list" class="services__result-cont">
-                    <div id="contentContainer" class="">
+                    <div id="searchContainer">
+
+                        <div class="search-form">
+                            <button class="search-form__icon"></button>
+                            <input type="text" class="search-form__input">
+                        </div>
 
                     </div>
-                    <div id="paginationContainer" class="pagination">
-
-                    </div>
+                    <div id="contentContainer"></div>
+                    <div id="paginationContainer" class="pagination"></div>
                 </div>
             </div>
 
@@ -57,15 +53,20 @@
         let page = Pagination.init({
             itemsList: servicesListArray,
             maxButtons: 5,
-            curPage: 'last',
+            curPage: 0,
             maxItems: 7,
-            nextButton: null,
-            prevButton: null,
-            searchPage: true,
-            onlyNextPrevButtons: false,
+
+            nextButton: true,
+            prevButton: true,
+
+            searchPage: false,
             searchPagePosition: 'right',
-            itemsNumber: true,
-            paginationContainer: "paginationContainer",
+
+            defaultButtons: false,
+            activeButton: false,
+
+            itemsNumber: false,
+            paginationContainer: "#paginationContainer",
             contentFunction: (data) => {
                 document.getElementById("contentContainer").innerHTML = "";
                 data.forEach(function(value, key, array) {

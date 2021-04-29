@@ -16,7 +16,7 @@ class Pagination {
     static _DefaultItemsButtonClass = 'items';
 
     static getNodeElementById(node) {
-        return typeof node == 'string' ? document.getElementById(node) : node;
+        return typeof node == 'string' ? document.querySelector(node) : node;
     }
 
     static getItemsList(array, pageSize) {
@@ -53,7 +53,7 @@ class Pagination {
         let bList = new Array();
         let curItem;
 
-        if (!options.onlyNextPrevButtons) {
+        if (options.defaultButtons) {
             for (let i = options.curPage - 1, it = 0; i >= 0 && it < options.maxButtons; i--, it++) {
                 if (originItemsList[i]) {
                     if (it == options.maxButtons - 2 && i > 0) {
@@ -80,7 +80,6 @@ class Pagination {
                     itemsList: originItemsList[0]
                 })
             }
-
 
             for (let i = options.curPage + 1, it = 0; i < originItemsList.length && it < options.maxButtons; i++, it++) {
                 if (originItemsList[i]) {
@@ -109,15 +108,20 @@ class Pagination {
                 })
             }
 
+        }
+
+        if (options.activeButton) {
             curItem = {
                 type: 'default',
                 pageNumber: options.curPage,
                 itemsList: originItemsList[options.curPage],
                 active: true
             }
-
-            bList = bList.concat(leftArray, curItem, rightArray);
         }
+
+        if (options.activeButton == true && options.defaultButtons == true) bList = bList.concat(leftArray, curItem, rightArray);
+        else if (options.activeButton == false && options.defaultButtons == true) bList = bList.concat(leftArray, rightArray);
+        else if (options.activeButton == true && options.defaultButtons == false) bList = bList.concat(curItem);
 
         const resultButtonsList = {
             buttonsList: new Array(),
@@ -129,15 +133,21 @@ class Pagination {
                 itemsNumber: options.itemsNumber,
                 paginationContainer: options.paginationContainer,
                 searchPagePosition: options.searchPagePosition,
+
+                lastItemsList: null,
+                prevContentFunction: options.prevContentFunction,
                 contentFunction: options.contentFunction,
-                onlyNextPrevButtons: options.onlyNextPrevButtons,
+
+                defaultButtons: options.defaultButtons,
+                activeButton: options.activeButton,
+
                 nextButton: options.nextButton,
                 prevButton: options.prevButton,
             }
         }
 
-        if (options.onlyNextPrevButtons || (options.prevButton === true || options.prevButton === null)) {
-            if (options.onlyNextPrevButtons || ((options.curPage > 0 && originItemsList.length > 2) || options.prevButton)) {
+        if (options.prevButton === true || options.prevButton === null) {
+            if ((options.curPage > 0 && originItemsList.length > 2) || options.prevButton) {
                 const prevButton = {
                     get pageNumber() {
                         if (options.curPage - 1 >= 0) return options.curPage - 1;
@@ -151,8 +161,8 @@ class Pagination {
             }
         }
 
-        if (options.onlyNextPrevButtons || (options.nextButton == true || options.nextButton == null)) {
-            if (options.onlyNextPrevButtons || ((options.curPage < originItemsList.length - 1 && originItemsList.length > 2) || options.nextButton)) {
+        if (options.nextButton == true || options.nextButton == null) {
+            if ((options.curPage < originItemsList.length - 1 && originItemsList.length > 2) || options.nextButton) {
                 const nextButton = {
                     get pageNumber() {
                         if (options.curPage + 1 <= originItemsList.length - 1) {
@@ -167,7 +177,7 @@ class Pagination {
             }
         }
 
-        if (options.searchButton == true && !options.onlyNextPrevButtons) {
+        if (options.searchButton == true) {
             const searchButton = {
                 type: 'search',
                 text: Pagination._DefaultSearchText,
@@ -182,7 +192,7 @@ class Pagination {
             }
         }
 
-        if (options.itemsNumber == true && !options.onlyNextPrevButtons) {
+        if (options.itemsNumber == true) {
             const itemsNumber = {
                 type: 'items',
                 get text() {
@@ -202,16 +212,21 @@ class Pagination {
     static init(options = false) {
         if (typeof options !== 'object' || options === false) return false;
 
+        const originItemsList = options.itemsList ? options.itemsList : false;
         const maxButtons = options.maxButtons ? options.maxButtons : 5;
         const maxItems = options.maxItems ? options.maxItems : 10;
-        const searchButton = options.searchPage == true ? true : false;
-        const originItemsList = options.itemsList ? options.itemsList : false;
-        const itemsNumber = options.itemsNumber == true ? true : false;
-        const paginationContainer = options.paginationContainer ? Pagination.getNodeElementById(options.paginationContainer) : false;
-        const contentFunction = options.contentFunction ? options.contentFunction : false;
 
+        const paginationContainer = options.paginationContainer ? Pagination.getNodeElementById(options.paginationContainer) : false;
+
+        const prevContentFunction = typeof options.prevContentFunction == 'function' ? options.prevContentFunction : false;
+        const contentFunction = typeof options.contentFunction == 'function' ? options.contentFunction : false;
+
+        const searchButton = options.searchPage == true ? true : false;
+        const itemsNumber = options.itemsNumber == true ? true : false;
         const searchPagePosition = options.searchPagePosition != undefined ? options.searchPagePosition : null;
-        const onlyNextPrevButtons = options.onlyNextPrevButtons == true ? true : false;
+
+        const defaultButtons = options.defaultButtons != undefined ? options.defaultButtons : true;
+        const activeButton = options.activeButton != undefined ? options.activeButton : true;
 
         const nextButton = options.nextButton != undefined ? options.nextButton : null;
         const prevButton = options.prevButton != undefined ? options.prevButton : null;
@@ -232,13 +247,21 @@ class Pagination {
             itemsList: iList,
             curPage: curPage,
             maxButtons: maxButtons,
+
             searchButton: searchButton,
             searchPagePosition: searchPagePosition,
+
             itemsNumber: itemsNumber,
             nextButton: nextButton,
             prevButton: prevButton,
-            onlyNextPrevButtons: onlyNextPrevButtons,
+
             paginationContainer: paginationContainer,
+
+            defaultButtons: defaultButtons,
+            activeButton: activeButton,
+
+            lastItemsList: null,
+            prevContentFunction: prevContentFunction,
             contentFunction: contentFunction,
         });
 
@@ -252,10 +275,14 @@ class Pagination {
 
         if (options.paginationContainer) options.paginationContainer.innerHTML = "";
 
-        if (options.onlyNextPrevButtons) options.paginationContainer.classList.add(Pagination._DefaultOnlyNextPrevClass);
+        if (options.defaultButtons == false && options.activeButton == false) options.paginationContainer.classList.add(Pagination._DefaultOnlyNextPrevClass);
 
         if (!options.paginationContainer.classList.contains(Pagination._DefaultPaginationContainerClass)) {
             options.paginationContainer.classList.add(Pagination._DefaultPaginationContainerClass);
+        }
+
+        if (options.prevContentFunction) {
+            options.prevContentFunction(options.lastItemsList);
         }
 
         if (options.contentFunction && options.itemsList[options.curPage]) {
@@ -331,7 +358,7 @@ class Pagination {
             } else {
                 const pagElement = document.createElement('button');
                 pagElement.classList.add('pagination__item');
-                if (value.text) console.log(value.text);
+
                 pagElement.innerText = value.type === 'default' ? value.pageNumber + 1 : value.text;
                 pagElement.setAttribute('data-page', value.type == 'default' ? value.pageNumber : value.text);
 
