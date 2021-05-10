@@ -16,15 +16,25 @@
 
             <div class="services">
                 <div id="srv-result-list" class="services__result-cont">
-                    <div id="searchContainer">
+                    <div class="p-4">
+                        <div class="search-panel">
 
-                        <div class="search-form">
-                            <button class="search-form__icon"></button>
-                            <input type="text" class="search-form__input">
+                            <div class="search-panel__form active">
+                                <button class="search-panel__search-button">
+                                    <img class="search-panel__search-button-img" src="./img/search/search.png">
+                                </button>
+                                <input id="search-input" type="text" class="search-panel__input" placeholder="Поиск">
+                                <button id="search-clear" class="search-panel__clear-button">
+                                    <img class="search-panel__clear-button-img" src="./img/search/cancel.png">
+                                </button>
+                            </div>
+
+                            <div id="search-output" class="search-panel__result-cont">
+                                <div class="search-panel__result-item"><a href="yandex.ru">Link</a></div>
+                            </div>
                         </div>
-
                     </div>
-                    <div id="contentContainer"></div>
+                    <div id="contentContainer" class="content-container"></div>
                     <div id="paginationContainer" class="pagination"></div>
                 </div>
             </div>
@@ -35,11 +45,13 @@
     </div>
 
     <script src="./js/search.js"></script>
+    <script src="./js/search-panel.js"></script>
     <script src="./js/pagination.js"></script>
 
     <script>
-        const maxElements = 100000;
+        const maxElements = 100;
         const servicesListArray = new Array();
+        const searchListArray = new Array();
 
         for (let i = 0; i < maxElements; i++) {
             servicesListArray[i] = {
@@ -48,9 +60,10 @@
                 price: getRandomInt(100, 10000),
                 value: uniqueId(getRandomInt(10, 256))
             }
+            searchListArray[i] = document.getElementById('search-input');
         }
 
-        let page = Pagination.init({
+        const page = Pagination.init({
             itemsList: servicesListArray,
             maxButtons: 5,
             curPage: 0,
@@ -59,11 +72,11 @@
             nextButton: true,
             prevButton: true,
 
-            searchPage: false,
+            searchPage: true,
             searchPagePosition: 'right',
 
-            defaultButtons: false,
-            activeButton: false,
+            defaultButtons: true,
+            activeButton: true,
 
             itemsNumber: false,
             paginationContainer: "#paginationContainer",
@@ -71,12 +84,128 @@
                 document.getElementById("contentContainer").innerHTML = "";
                 data.forEach(function(value, key, array) {
                     const contentElement = document.createElement('div');
-                    contentElement.innerHTML = `<b>${value.id}</b>`;
+                    contentElement.innerHTML = `<b>${value.value}</b>`;
                     contentElement.classList.add('content-item');
                     document.getElementById("contentContainer").append(contentElement);
                 });
             }
         })
+
+        //----------------------------------------------------------------------------
+
+        const search = SearchPanel.init({
+            input: '#search-input',
+            output: '#search-output',
+            clear: '#search-clear',
+
+            data: [{
+                array: servicesListArray,
+                keys: ['value'],
+                maxElements: 15,
+                title: "Services",
+                clickFunction: function() {
+
+                },
+                outputFunction: function() {
+
+                }
+            }, {
+                array: searchListArray,
+                keys: ['info', 'title'],
+                title: "Search",
+                maxElements: 5
+            }]
+        })
+
+        //----------------------------------------------------------------------------
+
+        function extensionInit() {
+
+            const _DefaultPopupClass = 'css-info-popup';
+            const _DefaultPopupTitleClass = 'css-info-popup__title';
+            const _DefaultPopupElemNameClass = 'css-info-popup__elem-name';
+
+            let lastElement = null;
+            let curElement = null;
+            let selectNewElement = false;
+
+            let popupContainer = null;
+            let popupTitle = null;
+            let popupElementName = null;
+
+            function createPopup() {
+                popupContainer = document.createElement('div');
+                popupContainer.classList.add(_DefaultPopupClass);
+
+                popupTitle = document.createElement('div');
+                popupTitle.classList.add(_DefaultPopupTitleClass);
+                popupElement.append(popupTitle);
+
+                popupElementName = document.createElement('span');
+                popupElementName.classList.add(_DefaultPopupElemNameClass);
+                popupTitle.append(popupElementName);
+
+                document.body.append(popupElement);
+            }
+
+            function updatePopup(e) {
+                if (!popupElement) createPopup();
+
+                if (popupElement && curElement) {
+                    const posLeft = e.clientX + 20;
+                    const posTop = e.clientY + 20;
+                    popupElement.style.transform = `translate(${posLeft}px,${posTop}px`;
+
+
+                }
+            }
+
+            function updateOutline() {
+
+
+            }
+
+            function showInfo(e) {
+                console.log("Current: ", curElement);
+                console.log("Last: ", lastElement);
+
+                if (curElement) {
+                    //curElement.style.border = "2px solid red";
+                    curElement.style.outline = "2px solid red";
+                    // curElement.style.outline = "2px";
+                    // curElement.style.outlineColor = "red";
+                }
+
+                if (lastElement && lastElement != curElement) {
+                    //lastElement.style.border = "";
+                    lastElement.style.outline = "";
+                }
+
+                if (!popupElement) createPopup();
+
+                if (popupElement) {
+                    console.log("popup");
+                    popupElement.style.position = "fixed";
+                    popupElement.style.left = e.clientX + "px";
+                    popupElement.style.top = e.clientY + "px";
+                }
+
+                lastElement = curElement;
+            }
+
+            document.addEventListener('mousemove', e => {
+                curElement = e.target;
+
+                showInfo(e);
+                // if (lastElement != curElement) {
+                //     showInfo(e);
+                // }
+
+
+            });
+        }
+
+        //extensionInit();
     </script>
 </body>
 
